@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <Pattern>%d %-5level %logger: %msg%n</Pattern>
+        </encoder>
+    </appender>
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="consoleAppender"/>
+    </root>
+
+    <logger name="com.droidablebee" level="DEBUG"/>
+
+    <logger name="org.apache.http" level="DEBUG"/>
+    <logger name="groovyx.net.http" level="DEBUG"/>
+
+</configuration>
