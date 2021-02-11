@@ -3,8 +3,6 @@ package com.droidablebee.gphoto
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.HttpResponseDecorator
-import org.apache.commons.io.FileUtils
-import spock.lang.Specification
 
 abstract class BaseRestService {
 

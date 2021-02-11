@@ -44,7 +44,8 @@ class GooglePhotoService extends BaseRestService {
             ${OPT_ALBUM_ITEMS}      list all items per album (use with care for large number of media items)
             ${OPT_ITEMS}            list all items (use with care for large number of media items)
             ${OPT_ITEMS_NO_ALBUM}   list all items not included in any album
-            <access token>          OAUTH2 Access Token obtained from https://developers.google.com/oauthplayground
+            <access token>          OAUTH2 Access Token is obtained from https://developers.google.com/oauthplayground
+                                    use 'https://www.googleapis.com/auth/photoslibrary.readonly' as the requested scope
         """
         )
     }
@@ -117,7 +118,7 @@ class GooglePhotoService extends BaseRestService {
                 if (foundItem) {
                     itemsMap[item.id].albums << album
                 } else {
-                    System.err.println("Warning: item: ${item} from album ${album.title}: ${album.productUrl} not found")
+                    System.err.println("Warning: item: ${item} from album ${album.title}: ${album.productUrl} not found in the list of media items. Probably shared item from another account.")
                 }
             }
         }
