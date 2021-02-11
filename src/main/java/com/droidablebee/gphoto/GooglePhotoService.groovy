@@ -34,15 +34,15 @@ class GooglePhotoService extends BaseRestService {
         }
 
         GooglePhotoService service = new GooglePhotoService()
-        service.process(args, token)
+        service.process(args.toList(), token)
     }
 
     static void usage() {
 
         System.err.println("""Usage: ${GooglePhotoService.name} [option] -Dtoken=<access token>
             ${OPT_ALBUMS}           list all albums, sorted by name
-            ${OPT_ALBUM_ITEMS}      list all items per album
-            ${OPT_ITEMS}            list all items
+            ${OPT_ALBUM_ITEMS}      list all items per album (use with care for large number of media items)
+            ${OPT_ITEMS}            list all items (use with care for large number of media items)
             ${OPT_ITEMS_NO_ALBUM}   list all items not included in any album
             <access token>          OAUTH2 Access Token obtained from https://developers.google.com/oauthplayground
         """
@@ -59,7 +59,7 @@ class GooglePhotoService extends BaseRestService {
         return "gphoto-manager"
     }
 
-    def "process"(String[] args, String token) {
+    def "process"(List args, String token) {
 
         List albums
 
@@ -81,8 +81,8 @@ class GooglePhotoService extends BaseRestService {
 
                 album.mediaItems = items
                 if (args.contains(OPT_ALBUM_ITEMS)) {
-                    items.each {
-                        println(items)
+                    items.each { Map item ->
+                        println(item)
                     }
                 }
             }
@@ -90,7 +90,7 @@ class GooglePhotoService extends BaseRestService {
         }
 
         List items
-        if (args.contains(OPT_ITEMS || args.contains(OPT_ITEMS_NO_ALBUM))) {
+        if (args.contains(OPT_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM)) {
             items = getAllItems(token)
             println("Total media items: ${items.size()}")
             if (args.contains(OPT_ITEMS)) {
@@ -148,8 +148,8 @@ class GooglePhotoService extends BaseRestService {
                     query: [pageSize: pageSize, pageToken: nextPageToken]
             )
 
-            assert response.status == 200 : response.data['error']
-            List list = response.data['albums']
+            assert response.status == 200: response.data['error']
+            List list = response.data['albums'] ?: []
             println(" received: ${list.size()}")
             albums.addAll(list)
             nextPageToken = response.data['nextPageToken']
@@ -178,8 +178,8 @@ class GooglePhotoService extends BaseRestService {
                     body: [albumId: albumId, pageSize: pageSize, pageToken: nextPageToken]
             )
 
-            assert response.status == 200 : response.data['error']
-            List list = response.data['mediaItems']
+            assert response.status == 200: response.data['error']
+            List list = response.data['mediaItems'] ?: []
             println(" received: ${list.size()}")
             items.addAll(list)
             nextPageToken = response.data['nextPageToken']
@@ -208,8 +208,8 @@ class GooglePhotoService extends BaseRestService {
                     query: [pageSize: pageSize, pageToken: nextPageToken]
             )
 
-            assert response.status == 200 : response.data['error']
-            List list = response.data['mediaItems']
+            assert response.status == 200: response.data['error']
+            List list = response.data['mediaItems'] ?: []
             println(" received: ${list.size()}")
             items.addAll(list)
             nextPageToken = response.data['nextPageToken']
