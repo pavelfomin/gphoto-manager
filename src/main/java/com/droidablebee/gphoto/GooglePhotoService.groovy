@@ -74,16 +74,19 @@ class GooglePhotoService extends BaseRestService {
 
                 println("Album: ${album.title}, items: ${album.mediaItemsCount} url: ${album.productUrl}")
 
-                List items = getItemsForAlbum(album.id, token)
-                println("\t total items received for album: ${items.size()}")
-                if (items.size() != Integer.valueOf(album.mediaItemsCount)) {
-                    System.err.println("\t\t Warning: total items received does not match album media count")
-                }
+                if (args.contains(OPT_ALBUM_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM)) {
+                    List items = getItemsForAlbum(album.id, token)
+                    println("\t total items received for album: ${items.size()}")
+                    if (items.size() != Integer.valueOf(album.mediaItemsCount)) {
+                        System.err.println("\t\t Warning: total items received does not match album media count")
+                    }
 
-                album.mediaItems = items
-                if (args.contains(OPT_ALBUM_ITEMS)) {
-                    items.each { Map item ->
-                        println(item)
+                    album.mediaItems = items
+
+                    if (args.contains(OPT_ALBUM_ITEMS)) {
+                        items.each { Map item ->
+                            println(item)
+                        }
                     }
                 }
             }
