@@ -8,7 +8,16 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static com.droidablebee.gphoto.GooglePhotoService.ALBUMS
+import static com.droidablebee.gphoto.GooglePhotoService.ALBUMS_MAX_PAGE_SIZE
+import static com.droidablebee.gphoto.GooglePhotoService.AUTHORIZATION
+import static com.droidablebee.gphoto.GooglePhotoService.BEARER
 import static com.droidablebee.gphoto.GooglePhotoService.ERROR
+import static com.droidablebee.gphoto.GooglePhotoService.HEADERS
+import static com.droidablebee.gphoto.GooglePhotoService.NEXT_PAGE_TOKEN
+import static com.droidablebee.gphoto.GooglePhotoService.PAGE_SIZE
+import static com.droidablebee.gphoto.GooglePhotoService.PAGE_TOKEN
+import static com.droidablebee.gphoto.GooglePhotoService.PATH
+import static com.droidablebee.gphoto.GooglePhotoService.QUERY
 
 class GooglePhotoServiceSpec extends Specification {
 
@@ -26,21 +35,37 @@ class GooglePhotoServiceSpec extends Specification {
     @Unroll
     def "get all albums"() {
 
-        HttpResponseDecorator response = new HttpResponseDecorator(base, data)
+        String token = "token"
 
         when:
-        List found = service.getAllAlbums()
+        List found = service.getAllAlbums(token)
 
         then:
-        found == albums
+        found == albums1 + albums2
 
-        1 * http.get(_ as Map) >> response
-        1 * statusLine.statusCode >> statusCode
+//        calls * http.get(_ as Map) >>> new HttpResponseDecorator(base, data1) >> new HttpResponseDecorator(base, data2)
+
+        call1 * http.get({ Map params ->
+            params[PATH] == service.getDefaultUri() + ALBUMS &&
+                    params[HEADERS][AUTHORIZATION] == "${BEARER} ${token}" &&
+                    params[QUERY][PAGE_SIZE] == ALBUMS_MAX_PAGE_SIZE &&
+                    params[QUERY][PAGE_TOKEN] == null
+        }) >> new HttpResponseDecorator(base, data1)
+
+        call2 * http.get({ Map params ->
+            params[PATH] == service.getDefaultUri() + ALBUMS &&
+                    params[HEADERS][AUTHORIZATION] == "${BEARER} ${token}" &&
+                    params[QUERY][PAGE_SIZE] == ALBUMS_MAX_PAGE_SIZE &&
+                    params[QUERY][PAGE_TOKEN] == data1[NEXT_PAGE_TOKEN]
+        }) >> new HttpResponseDecorator(base, data2)
+
+        (call1 + call2) * statusLine.statusCode >> statusCode
 
         where:
-        statusCode | albums                                                     | data
-        200        | []                                                         | [(ALBUMS): albums]
-        200        | [[id: "1", title: "title 1", productUrl: "http://mock/1"]] | [(ALBUMS): albums]
+        statusCode | albums1                                                    | albums2                                                    | call1 | call2  | data1                                                 | data2
+        200        | []                                                         | []                                                         | 1     | 0      | [(ALBUMS): albums1]                                   | null
+        200        | [[id: "1", title: "title 1", productUrl: "http://mock/1"]] | []                                                         | 1     | 0      | [(ALBUMS): albums1]                                   | null
+        200        | [[id: "1", title: "title 1", productUrl: "http://mock/1"]] | [[id: "2", title: "title 2", productUrl: "http://mock/2"]] | 1     | 1      | [(ALBUMS): albums1, (NEXT_PAGE_TOKEN): "nextPageToken"] | [(ALBUMS): albums2]
     }
 
     @Unroll

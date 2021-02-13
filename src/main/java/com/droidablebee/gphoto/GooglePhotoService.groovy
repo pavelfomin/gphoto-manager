@@ -13,8 +13,19 @@ class GooglePhotoService extends BaseRestService {
 
     static final String OPT_TOKEN = "token"
 
-    static final String ALBUMS = 'albums'
-    static final String ERROR = 'error'
+    static final int ALBUMS_MAX_PAGE_SIZE = 50
+    static final int ITEMS_MAX_PAGE_SIZE = 100
+
+    static final String ALBUMS = "albums"
+    static final String ERROR = "error"
+    static final String NEXT_PAGE_TOKEN = "nextPageToken"
+    static final String PATH = "path"
+    static final String HEADERS = "headers"
+    static final String AUTHORIZATION = "Authorization"
+    static final String BEARER = "Bearer"
+    static final String QUERY = "query"
+    static final String PAGE_SIZE = "pageSize"
+    static final String PAGE_TOKEN = "pageToken"
 
     static void main(String[] args) {
 
@@ -55,7 +66,7 @@ class GooglePhotoService extends BaseRestService {
 
     @Override
     protected String getDefaultUri() {
-        return 'https://photoslibrary.googleapis.com/v1'
+        return 'https://photoslibrary.googleapis.com/v1/'
     }
 
     @Override
@@ -142,17 +153,15 @@ class GooglePhotoService extends BaseRestService {
     def getAllAlbums(String token) {
 
         int page = 0
-        int pageSize = 50
         List albums = []
         String nextPageToken
 
         while (true) {
             print("Processing albums page: ${++page} ...")
             HttpResponseDecorator response = http.get(
-                    requestContentType: ContentType.JSON,
-                    path: getDefaultUri() + "/${ALBUMS}",
-                    headers: [Authorization: "Bearer ${token}"],
-                    query: [pageSize: pageSize, pageToken: nextPageToken]
+                    (PATH): getDefaultUri() + ALBUMS,
+                    (HEADERS): [(AUTHORIZATION): "${BEARER} ${token}"],
+                    (QUERY): [(PAGE_SIZE): ALBUMS_MAX_PAGE_SIZE, (PAGE_TOKEN): nextPageToken]
             )
 
             if (response.status != 200) {
@@ -161,7 +170,7 @@ class GooglePhotoService extends BaseRestService {
             List list = response.data[ALBUMS] ?: []
             println(" received: ${list.size()}")
             albums.addAll(list)
-            nextPageToken = response.data['nextPageToken']
+            nextPageToken = response.data[NEXT_PAGE_TOKEN]
 
             if (!nextPageToken) {
                 break
@@ -182,7 +191,7 @@ class GooglePhotoService extends BaseRestService {
             print("Processing album items page: ${++page} ...")
             HttpResponseDecorator response = http.post(
                     requestContentType: ContentType.JSON,
-                    path: getDefaultUri() + "/mediaItems:search",
+                    path: getDefaultUri() + "mediaItems:search",
                     headers: [Authorization: "Bearer ${token}"],
                     body: [albumId: albumId, pageSize: pageSize, pageToken: nextPageToken]
             )
@@ -191,7 +200,7 @@ class GooglePhotoService extends BaseRestService {
             List list = response.data['mediaItems'] ?: []
             println(" received: ${list.size()}")
             items.addAll(list)
-            nextPageToken = response.data['nextPageToken']
+            nextPageToken = response.data[NEXT_PAGE_TOKEN]
 
             if (!nextPageToken) {
                 break
@@ -212,7 +221,7 @@ class GooglePhotoService extends BaseRestService {
             print("Processing media items page: ${++page} ...")
             HttpResponseDecorator response = http.get(
                     requestContentType: ContentType.JSON,
-                    path: getDefaultUri() + "/mediaItems",
+                    path: getDefaultUri() + "mediaItems",
                     headers: [Authorization: "Bearer ${token}"],
                     query: [pageSize: pageSize, pageToken: nextPageToken]
             )
@@ -221,7 +230,7 @@ class GooglePhotoService extends BaseRestService {
             List list = response.data['mediaItems'] ?: []
             println(" received: ${list.size()}")
             items.addAll(list)
-            nextPageToken = response.data['nextPageToken']
+            nextPageToken = response.data[NEXT_PAGE_TOKEN]
 
             if (!nextPageToken) {
                 break
