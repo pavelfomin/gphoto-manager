@@ -73,6 +73,13 @@
             </exclusions>
         </dependency>
 
+        <!-- Mocking of non-interface types requires a code generation library -->
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib-nodep</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

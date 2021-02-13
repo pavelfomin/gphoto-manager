@@ -13,6 +13,9 @@ class GooglePhotoService extends BaseRestService {
 
     static final String OPT_TOKEN = "token"
 
+    static final String ALBUMS = 'albums'
+    static final String ERROR = 'error'
+
     static void main(String[] args) {
 
         if (!args) {
@@ -147,13 +150,15 @@ class GooglePhotoService extends BaseRestService {
             print("Processing albums page: ${++page} ...")
             HttpResponseDecorator response = http.get(
                     requestContentType: ContentType.JSON,
-                    path: getDefaultUri() + "/albums",
+                    path: getDefaultUri() + "/${ALBUMS}",
                     headers: [Authorization: "Bearer ${token}"],
                     query: [pageSize: pageSize, pageToken: nextPageToken]
             )
 
-            assert response.status == 200: response.data['error']
-            List list = response.data['albums'] ?: []
+            if (response.status != 200) {
+                throw new HttpException(response.data[ERROR])
+            }
+            List list = response.data[ALBUMS] ?: []
             println(" received: ${list.size()}")
             albums.addAll(list)
             nextPageToken = response.data['nextPageToken']
@@ -182,7 +187,7 @@ class GooglePhotoService extends BaseRestService {
                     body: [albumId: albumId, pageSize: pageSize, pageToken: nextPageToken]
             )
 
-            assert response.status == 200: response.data['error']
+            assert response.status == 200: response.data[ERROR]
             List list = response.data['mediaItems'] ?: []
             println(" received: ${list.size()}")
             items.addAll(list)
@@ -212,7 +217,7 @@ class GooglePhotoService extends BaseRestService {
                     query: [pageSize: pageSize, pageToken: nextPageToken]
             )
 
-            assert response.status == 200: response.data['error']
+            assert response.status == 200: response.data[ERROR]
             List list = response.data['mediaItems'] ?: []
             println(" received: ${list.size()}")
             items.addAll(list)
