@@ -12,6 +12,7 @@ class GooglePhotoApplication {
 
     static final String ID = "id"
     static final String TITLE = "title"
+    static final String DESCRIPTION = "description"
     static final String PRODUCT_URL = "productUrl"
     static final String MEDIA_ITEMS_COUNT = "mediaItemsCount"
     static final String MEDIA_ITEMS = GooglePhotoService.MEDIA_ITEMS
@@ -76,11 +77,9 @@ class GooglePhotoApplication {
         List items
         if (args.contains(OPT_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM)) {
             items = service.getAllItems(token)
-            println("Total media items: ${items.size()}")
+            logMediaItemsSummary(items)
             if (args.contains(OPT_ITEMS)) {
-                items.each { Map item ->
-                    println(item)
-                }
+                logMediaItems(items)
             }
         }
 
@@ -91,17 +90,17 @@ class GooglePhotoApplication {
         //map items
         Map itemsMap = items.collectEntries { Map item ->
             item.albums = []
-            [item.id, item]
+            [item[ID], item]
         }
 
         //add corresponding albums found for each media item
         albums.each { Map album ->
-            album.mediaItems.each { Map item ->
-                Map foundItem = itemsMap[item.id]
+            album[MEDIA_ITEMS].each { Map item ->
+                Map foundItem = itemsMap[item[ID]]
                 if (foundItem) {
-                    itemsMap[item.id].albums << album
+                    itemsMap[item[ID]].albums << album
                 } else {
-                    System.err.println("Warning: item: ${item} from album ${album.title}: ${album.productUrl} not found in the list of media items. Probably shared item from another account.")
+                    logAlbumItemNotFound(item, album)
                 }
             }
         }
@@ -110,9 +109,9 @@ class GooglePhotoApplication {
             !item.albums
         }
 
-        println("Media items w/out albums: ${itemsWithoutAlbums.size()}")
-        itemsWithoutAlbums.each { String key, Map item ->
-            println(item.productUrl)
+        logItemsWithoutAlbumsSummary(itemsWithoutAlbums)
+        if (itemsWithoutAlbums) {
+            logItemsWithoutAlbums(itemsWithoutAlbums)
         }
     }
 
@@ -139,11 +138,12 @@ class GooglePhotoApplication {
                 album[MEDIA_ITEMS] = items
 
                 if (logAlbumItems) {
-                    logAlbumMediaItems(items)
+                    logMediaItems(items)
                 }
             }
         }
-        println("Total albums: ${albums.size()} total album items: ${totalItems}")
+
+        logAlbumsSummary(albums, totalItems)
 
         return albums
     }
@@ -153,7 +153,33 @@ class GooglePhotoApplication {
         return System.getProperty(OPT_TOKEN)
     }
 
-    def logAlbumMediaItems(List items) {
+    def logItemsWithoutAlbums(Map itemsWithoutAlbums) {
+
+        itemsWithoutAlbums.each { String key, Map item ->
+            println("${item[DESCRIPTION] ?: ""} ${item[PRODUCT_URL]}")
+        }
+    }
+
+    def logItemsWithoutAlbumsSummary(Map itemsWithoutAlbums) {
+
+        println("Media items w/out albums: ${itemsWithoutAlbums.size()}")
+    }
+
+    def logAlbumItemNotFound(Map item, Map album) {
+
+        System.err.println("Warning: item: ${item} from album ${album[TITLE]}: ${album[PRODUCT_URL]} not found in the list of media items. Probably shared item from another account.")
+    }
+
+    def logMediaItemsSummary(List items) {
+
+        println("Total media items: ${items.size()}")
+    }
+
+    def logAlbumsSummary(List albums, int totalItems) {
+        println("Total albums: ${albums.size()} total album items: ${totalItems}")
+    }
+
+    def logMediaItems(List items) {
 
         items.each { Map item ->
             println(item)
