@@ -11,16 +11,26 @@ using "https://www.googleapis.com/auth/photoslibrary.readonly" as a requested sc
 
 Access token is passed to the GooglePhotoService using -Dtoken=<access token>
 
+## Download
+Download [latest version](https://github.com/pavelfomin/gphoto-manager/releases)
+
 ## Usage
 To list the available options:
 ```
+java -jar gphoto-manager-<version>.jar
+```
+Examples:
+```
+java -jar gphoto-manager-<version>.jar --albums -Dtoken=<access token>
+java -jar gphoto-manager-<version>.jar --items-no-album -Dtoken=<access token>
+```
+
+### Maven wrapper (for developers)
+```
 ./mvnw clean compile exec:java -Dexec.mainClass="com.droidablebee.gphoto.GooglePhotoService"
-```
-Example:
-```
 ./mvnw clean compile exec:java -Dexec.mainClass="com.droidablebee.gphoto.GooglePhotoService" -Dexec.args="--items-no-album" -Dtoken=<access token>
 ```
 
-## Running tests
+### Running tests
  - `./mvnw clean test`
  - `open target/spock-reports/index.html`
