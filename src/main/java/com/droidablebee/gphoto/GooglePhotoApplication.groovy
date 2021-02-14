@@ -9,9 +9,11 @@ class GooglePhotoApplication {
     static final List VALID_OPTIONS = [OPT_ALBUMS, OPT_ALBUM_ITEMS, OPT_ITEMS, OPT_ITEMS_NO_ALBUM]
 
     static final String OPT_TOKEN = "token"
+    static final String OPT_SUPPRESS_WARNINGS = "suppress-warnings"
 
     static final String ID = "id"
     static final String TITLE = "title"
+    static final String DESCRIPTION = "description"
     static final String PRODUCT_URL = "productUrl"
     static final String MEDIA_ITEMS_COUNT = "mediaItemsCount"
     static final String MEDIA_ITEMS = GooglePhotoService.MEDIA_ITEMS
@@ -26,13 +28,14 @@ class GooglePhotoApplication {
 
     def usage() {
 
-        System.err.println("""Usage: ${GooglePhotoApplication.name} [option] -Dtoken=<access token>
+        System.err.println("""Usage: ${GooglePhotoApplication.name} [options] -${OPT_TOKEN}=<access token> [-D${OPT_SUPPRESS_WARNINGS}]
             ${OPT_ALBUMS}           list all albums, sorted by name
             ${OPT_ALBUM_ITEMS}      list all items per album (use with care for large number of media items)
             ${OPT_ITEMS}            list all items (use with care for large number of media items)
             ${OPT_ITEMS_NO_ALBUM}   list all items not included in any album
-            <access token>          OAuth 2 Access Token can be obtained from https://developers.google.com/oauthplayground
-                                    use 'https://www.googleapis.com/auth/photoslibrary.readonly' as the requested scope
+            <access token>     OAuth 2 Access Token can be obtained from https://developers.google.com/oauthplayground
+                               use 'https://www.googleapis.com/auth/photoslibrary.readonly' as the requested scope
+            ${OPT_SUPPRESS_WARNINGS}  suppress all warnings, including album media count / items mismatch 
         """
         )
         System.exit(1)
@@ -63,24 +66,25 @@ class GooglePhotoApplication {
 
     def "process"(List args, String token) {
 
+        boolean suppressWarnings = suppressWarnings()
+
         List albums
 
         if (args.contains(OPT_ALBUMS) || args.contains(OPT_ALBUM_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM)) {
             albums = processAlbums(
                     token,
                     args.contains(OPT_ALBUM_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM),
-                    args.contains(OPT_ALBUM_ITEMS)
+                    args.contains(OPT_ALBUM_ITEMS),
+                    suppressWarnings
             )
         }
 
         List items
         if (args.contains(OPT_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM)) {
             items = service.getAllItems(token)
-            println("Total media items: ${items.size()}")
+            logMediaItemsSummary(items)
             if (args.contains(OPT_ITEMS)) {
-                items.each { Map item ->
-                    println(item)
-                }
+                logMediaItems(items)
             }
         }
 
@@ -91,17 +95,17 @@ class GooglePhotoApplication {
         //map items
         Map itemsMap = items.collectEntries { Map item ->
             item.albums = []
-            [item.id, item]
+            [item[ID], item]
         }
 
         //add corresponding albums found for each media item
         albums.each { Map album ->
-            album.mediaItems.each { Map item ->
-                Map foundItem = itemsMap[item.id]
+            album[MEDIA_ITEMS].each { Map item ->
+                Map foundItem = itemsMap[item[ID]]
                 if (foundItem) {
-                    itemsMap[item.id].albums << album
-                } else {
-                    System.err.println("Warning: item: ${item} from album ${album.title}: ${album.productUrl} not found in the list of media items. Probably shared item from another account.")
+                    itemsMap[item[ID]].albums << album
+                } else if (!suppressWarnings) {
+                    logAlbumItemNotFound(item, album)
                 }
             }
         }
@@ -110,13 +114,13 @@ class GooglePhotoApplication {
             !item.albums
         }
 
-        println("Media items w/out albums: ${itemsWithoutAlbums.size()}")
-        itemsWithoutAlbums.each { String key, Map item ->
-            println(item.productUrl)
+        logItemsWithoutAlbumsSummary(itemsWithoutAlbums)
+        if (itemsWithoutAlbums) {
+            logItemsWithoutAlbums(itemsWithoutAlbums)
         }
     }
 
-    List processAlbums(String token, boolean retrieveAlbumItems, boolean logAlbumItems) {
+    List processAlbums(String token, boolean retrieveAlbumItems, boolean logAlbumItems, boolean suppressWarnings) {
 
         List albums = service.getAllAlbums(token)
         int totalItems = albums.inject(0) { count, album ->
@@ -133,17 +137,20 @@ class GooglePhotoApplication {
                 List items = service.getItemsForAlbum(album[ID], token)
                 logAlbumItemsReceived(items)
                 if (items.size() != Integer.valueOf(album[MEDIA_ITEMS_COUNT] ? Integer.valueOf(album[MEDIA_ITEMS_COUNT]) : 0)) {
-                    logAlbumItemsCountMismatch()
+                    if (!suppressWarnings) {
+                        logAlbumItemsCountMismatch()
+                    }
                 }
 
                 album[MEDIA_ITEMS] = items
 
                 if (logAlbumItems) {
-                    logAlbumMediaItems(items)
+                    logMediaItems(items)
                 }
             }
         }
-        println("Total albums: ${albums.size()} total album items: ${totalItems}")
+
+        logAlbumsSummary(albums, totalItems)
 
         return albums
     }
@@ -153,7 +160,38 @@ class GooglePhotoApplication {
         return System.getProperty(OPT_TOKEN)
     }
 
-    def logAlbumMediaItems(List items) {
+    boolean suppressWarnings() {
+
+        return System.getProperty(OPT_SUPPRESS_WARNINGS) != null
+    }
+
+    def logItemsWithoutAlbums(Map itemsWithoutAlbums) {
+
+        itemsWithoutAlbums.each { String key, Map item ->
+            println("${item[DESCRIPTION] ?: ""} ${item[PRODUCT_URL]}")
+        }
+    }
+
+    def logItemsWithoutAlbumsSummary(Map itemsWithoutAlbums) {
+
+        println("Media items w/out albums: ${itemsWithoutAlbums.size()}")
+    }
+
+    def logAlbumItemNotFound(Map item, Map album) {
+
+        System.err.println("Warning: item: ${item} from album ${album[TITLE]}: ${album[PRODUCT_URL]} not found in the list of media items. Probably shared item from another account.")
+    }
+
+    def logMediaItemsSummary(List items) {
+
+        println("Total media items: ${items.size()}")
+    }
+
+    def logAlbumsSummary(List albums, int totalItems) {
+        println("Total albums: ${albums.size()} total album items: ${totalItems}")
+    }
+
+    def logMediaItems(List items) {
 
         items.each { Map item ->
             println(item)
