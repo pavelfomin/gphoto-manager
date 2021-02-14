@@ -6,8 +6,8 @@ import groovyx.net.http.HttpResponseDecorator
 
 abstract class BaseRestService {
 
-    protected static final String X_API_CLIENT = "X-API-CLIENT";
-    protected static final String USER_AGENT = "User-Agent";
+    protected static final String X_API_CLIENT = "X-API-CLIENT"
+    protected static final String USER_AGENT = "User-Agent"
 
     protected HTTPBuilder http = createHTTPBuilder()
 
@@ -35,7 +35,7 @@ abstract class BaseRestService {
 
     protected Map<String, String> getHttpHeaders() {
 
-        return [(X_API_CLIENT): getApiClient(), (USER_AGENT): "groovy-http-client"];
+        return [(X_API_CLIENT): getApiClient(), (USER_AGENT): "groovy-http-client"]
     }
 
     protected abstract String getApiClient()
