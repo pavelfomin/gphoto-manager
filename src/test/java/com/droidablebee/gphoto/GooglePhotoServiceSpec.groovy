@@ -159,4 +159,62 @@ class GooglePhotoServiceSpec extends Specification {
         401        | [code: statusCode, message: "Request had invalid authentication credentials", status: "UNAUTHENTICATED"] | [(ERROR): error]
     }
 
+    @Unroll
+    def "get all items"() {
+
+        String token = "token"
+
+        when:
+        List found = service.getAllItems(token)
+
+        then:
+        found == items1 + items2
+
+//        calls * http.get(_ as Map) >>> new HttpResponseDecorator(base, data1) >> new HttpResponseDecorator(base, data2)
+
+        call1 * http.get({ Map params ->
+            params[PATH] == service.getDefaultUri() + MEDIA_ITEMS &&
+                    params[HEADERS][AUTHORIZATION] == "${BEARER} ${token}" &&
+                    params[QUERY][PAGE_SIZE] == ITEMS_MAX_PAGE_SIZE &&
+                    params[QUERY][PAGE_TOKEN] == null
+        }) >> new HttpResponseDecorator(base, data1)
+
+        call2 * http.get({ Map params ->
+            params[PATH] == service.getDefaultUri() + MEDIA_ITEMS &&
+                    params[HEADERS][AUTHORIZATION] == "${BEARER} ${token}" &&
+                    params[QUERY][PAGE_SIZE] == ITEMS_MAX_PAGE_SIZE &&
+                    params[QUERY][PAGE_TOKEN] == data1[NEXT_PAGE_TOKEN]
+        }) >> new HttpResponseDecorator(base, data2)
+
+        (call1 + call2) * statusLine.statusCode >> statusCode
+
+        where:
+        statusCode | items1                                                                 | items2                                                                 | call1 | call2 | data1                                                       | data2
+        200        | []                                                                     | []                                                                     | 1     | 0     | [(MEDIA_ITEMS): items1]                                     | null
+        200        | [[id: "1", description: "description 1", productUrl: "http://mock/1"]] | []                                                                     | 1     | 0     | [(MEDIA_ITEMS): items1]                                     | null
+        200        | [[id: "1", description: "description 1", productUrl: "http://mock/1"]] | [[id: "2", description: "description 2", productUrl: "http://mock/2"]] | 1     | 1     | [(MEDIA_ITEMS): items1, (NEXT_PAGE_TOKEN): "nextPageToken"] | [(MEDIA_ITEMS): items2]
+    }
+
+    @Unroll
+    def "get all items - error"() {
+
+        String token = "token"
+        HttpResponseDecorator response = new HttpResponseDecorator(base, data)
+
+        when:
+        service.getAllItems(token)
+
+        then:
+        HttpException exception = thrown(HttpException)
+        exception.message == error.message
+        exception.code == error.code
+        exception.status == error.status
+
+        1 * http.get(_ as Map) >> response
+        1 * statusLine.statusCode >> statusCode
+
+        where:
+        statusCode | error                                                                                                    | data
+        401        | [code: statusCode, message: "Request had invalid authentication credentials", status: "UNAUTHENTICATED"] | [(ERROR): error]
+    }
 }

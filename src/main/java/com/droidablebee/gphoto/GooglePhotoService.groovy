@@ -1,6 +1,6 @@
 package com.droidablebee.gphoto
 
-import groovyx.net.http.ContentType
+
 import groovyx.net.http.HttpResponseDecorator
 
 class GooglePhotoService extends BaseRestService {
@@ -225,21 +225,23 @@ class GooglePhotoService extends BaseRestService {
     def getAllItems(String token) {
 
         int page = 0
-        int pageSize = 100
         List items = []
         String nextPageToken
 
         while (true) {
             print("Processing media items page: ${++page} ...")
+
             HttpResponseDecorator response = http.get(
-                    requestContentType: ContentType.JSON,
-                    path: getDefaultUri() + "mediaItems",
-                    headers: [Authorization: "Bearer ${token}"],
-                    query: [pageSize: pageSize, pageToken: nextPageToken]
+                    (PATH): getDefaultUri() + MEDIA_ITEMS,
+                    (HEADERS): [(AUTHORIZATION): "${BEARER} ${token}"],
+                    (QUERY): [(PAGE_SIZE): ITEMS_MAX_PAGE_SIZE, (PAGE_TOKEN): nextPageToken]
             )
 
-            assert response.status == 200: response.data[ERROR]
-            List list = response.data['mediaItems'] ?: []
+            if (response.status != 200) {
+                throw new HttpException(response.data[ERROR])
+            }
+
+            List list = response.data[MEDIA_ITEMS] ?: []
             println(" received: ${list.size()}")
             items.addAll(list)
             nextPageToken = response.data[NEXT_PAGE_TOKEN]
