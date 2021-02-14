@@ -15,12 +15,10 @@ import static com.droidablebee.gphoto.GooglePhotoApplication.VALID_OPTIONS
 class GooglePhotoApplicationSpec extends Specification {
 
     GooglePhotoService service = Mock()
-    GooglePhotoApplication application = new GooglePhotoApplication(service: service)
+    GooglePhotoApplication application = Spy(new GooglePhotoApplication(service: service))
 
     @Unroll
     def "process options"() {
-
-        GooglePhotoApplication application = Spy(application)
 
         when:
         application.process(args)
@@ -42,14 +40,14 @@ class GooglePhotoApplicationSpec extends Specification {
     @Unroll
     def "process with valid args and token specified"() {
 
-        GooglePhotoApplication application = Spy(application)
         String token = "token"
 
         when:
         application.process(args, token)
 
         then:
-        albumsCall * application.processAlbums(token, retrieveAlbumItems, logAlbumItems) >> albums
+        1 * application.suppressWarnings() >> suppressWarnings
+        albumsCall * application.processAlbums(token, retrieveAlbumItems, logAlbumItems, suppressWarnings) >> albums
         itemsCall * service.getAllItems(token) >> items
         logMediaItemsSummary * application.logMediaItemsSummary(items)
         logMediaItems * application.logMediaItems(items)
@@ -58,27 +56,27 @@ class GooglePhotoApplicationSpec extends Specification {
         logItemsWithoutAlbums * application.logItemsWithoutAlbums(_)
 
         where:
-        args                                             | albumsCall | albums                                                             | retrieveAlbumItems | logAlbumItems | itemsCall | items            | logMediaItemsSummary | logMediaItems | logAlbumItemNotFound | logItemsWithoutAlbumsSummary | logItemsWithoutAlbums
-        []                                               | 0          | []                                                                 | false              | false         | 0         | []               | 0                    | 0             | 0                    | 0                            | 0
-        [OPT_ALBUMS]                                     | 1          | []                                                                 | false              | false         | 0         | []               | 0                    | 0             | 0                    | 0                            | 0
-        [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1"]]                                                    | true               | false         | 1         | []               | 1                    | 0             | 0                    | 1                            | 0
-        [OPT_ITEMS_NO_ALBUM, OPT_ALBUM_ITEMS]            | 1          | [[(ID): "id1"]]                                                    | true               | true          | 1         | []               | 1                    | 0             | 0                    | 1                            | 0
-        [OPT_ITEMS]                                      | 0          | []                                                                 | false              | false         | 1         | []               | 1                    | 1             | 0                    | 0                            | 0
-        [OPT_ITEMS_NO_ALBUM, OPT_ITEMS]                  | 1          | [[(ID): "id1"]]                                                    | true               | false         | 1         | []               | 1                    | 1             | 0                    | 1                            | 0
-        [OPT_ITEMS_NO_ALBUM, OPT_ALBUM_ITEMS, OPT_ITEMS] | 1          | [[(ID): "id1"]]                                                    | true               | true          | 1         | []               | 1                    | 1             | 0                    | 1                            | 0
-        [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1", (MEDIA_ITEMS): [[(ID): "mine"]]]]                   | true               | false         | 1         | [[(ID): "mine"]] | 1                    | 0             | 0                    | 1                            | 0
-        [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1", (MEDIA_ITEMS): [[(ID): "shared"], [(ID): "mine"]]]] | true               | false         | 1         | [[(ID): "mine"]] | 1                    | 0             | 1                    | 1                            | 0
-        [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1", (MEDIA_ITEMS): [[(ID): "shared"]]]]                 | true               | false         | 1         | [[(ID): "mine"]] | 1                    | 0             | 1                    | 1                            | 1
+        args                                             | albumsCall | albums                                                             | retrieveAlbumItems | logAlbumItems | itemsCall | items            | logMediaItemsSummary | logMediaItems | logAlbumItemNotFound | logItemsWithoutAlbumsSummary | logItemsWithoutAlbums | suppressWarnings
+        []                                               | 0          | []                                                                 | false              | false         | 0         | []               | 0                    | 0             | 0                    | 0                            | 0                     | false
+        [OPT_ALBUMS]                                     | 1          | []                                                                 | false              | false         | 0         | []               | 0                    | 0             | 0                    | 0                            | 0                     | false
+        [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1"]]                                                    | true               | false         | 1         | []               | 1                    | 0             | 0                    | 1                            | 0                     | false
+        [OPT_ITEMS_NO_ALBUM, OPT_ALBUM_ITEMS]            | 1          | [[(ID): "id1"]]                                                    | true               | true          | 1         | []               | 1                    | 0             | 0                    | 1                            | 0                     | false
+        [OPT_ITEMS]                                      | 0          | []                                                                 | false              | false         | 1         | []               | 1                    | 1             | 0                    | 0                            | 0                     | false
+        [OPT_ITEMS_NO_ALBUM, OPT_ITEMS]                  | 1          | [[(ID): "id1"]]                                                    | true               | false         | 1         | []               | 1                    | 1             | 0                    | 1                            | 0                     | false
+        [OPT_ITEMS_NO_ALBUM, OPT_ALBUM_ITEMS, OPT_ITEMS] | 1          | [[(ID): "id1"]]                                                    | true               | true          | 1         | []               | 1                    | 1             | 0                    | 1                            | 0                     | false
+        [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1", (MEDIA_ITEMS): [[(ID): "mine"]]]]                   | true               | false         | 1         | [[(ID): "mine"]] | 1                    | 0             | 0                    | 1                            | 0                     | false
+        [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1", (MEDIA_ITEMS): [[(ID): "shared"], [(ID): "mine"]]]] | true               | false         | 1         | [[(ID): "mine"]] | 1                    | 0             | 1                    | 1                            | 0                     | false
+        [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1", (MEDIA_ITEMS): [[(ID): "shared"]]]]                 | true               | false         | 1         | [[(ID): "mine"]] | 1                    | 0             | 1                    | 1                            | 1                     | false
+        [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1", (MEDIA_ITEMS): [[(ID): "shared"]]]]                 | true               | false         | 1         | [[(ID): "mine"]] | 1                    | 0             | 0                    | 1                            | 1                     | true
     }
 
     @Unroll
     def "process albums"() {
 
-        GooglePhotoApplication application = Spy(application)
         String token
 
         when:
-        List found = application.processAlbums(token, retrieveAlbumItems, logAlbumItems)
+        List found = application.processAlbums(token, retrieveAlbumItems, logAlbumItems, suppressWarnings)
 
         then:
         found == albums
@@ -104,13 +102,14 @@ class GooglePhotoApplicationSpec extends Specification {
 //        }, token) >> albumItems
 
         where:
-        retrieveAlbumItems | logAlbumItems | albums                                  | albumItemCall | albumItems      | logItemsCountMismatch | logAlbumMediaItems
-        false              | false         | []                                      | 0             | []              | 0                     | 0
-        true               | false         | []                                      | 0             | []              | 0                     | 0
-        true               | false         | [[(ID): "id1"]]                         | 1             | []              | 0                     | 0
-        true               | false         | [[(ID): "id1", (MEDIA_ITEMS_COUNT): 1]] | 1             | []              | 1                     | 0
-        true               | true          | [[(ID): "id1", (MEDIA_ITEMS_COUNT): 1]] | 1             | []              | 1                     | 1
-        true               | true          | [[(ID): "id1", (MEDIA_ITEMS_COUNT): 1]] | 1             | [[(ID): "idx"]] | 0                     | 1
+        retrieveAlbumItems | logAlbumItems | albums                                  | albumItemCall | albumItems      | logItemsCountMismatch | logAlbumMediaItems | suppressWarnings
+        false              | false         | []                                      | 0             | []              | 0                     | 0                  | false
+        true               | false         | []                                      | 0             | []              | 0                     | 0                  | false
+        true               | false         | [[(ID): "id1"]]                         | 1             | []              | 0                     | 0                  | false
+        true               | false         | [[(ID): "id1", (MEDIA_ITEMS_COUNT): 1]] | 1             | []              | 1                     | 0                  | false
+        true               | true          | [[(ID): "id1", (MEDIA_ITEMS_COUNT): 1]] | 1             | []              | 1                     | 1                  | false
+        true               | true          | [[(ID): "id1", (MEDIA_ITEMS_COUNT): 1]] | 1             | [[(ID): "idx"]] | 0                     | 1                  | false
+        true               | false         | [[(ID): "id1", (MEDIA_ITEMS_COUNT): 1]] | 1             | []              | 0                     | 0                  | true
     }
 
 }

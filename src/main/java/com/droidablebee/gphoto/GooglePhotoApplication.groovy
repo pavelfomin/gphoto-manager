@@ -9,6 +9,7 @@ class GooglePhotoApplication {
     static final List VALID_OPTIONS = [OPT_ALBUMS, OPT_ALBUM_ITEMS, OPT_ITEMS, OPT_ITEMS_NO_ALBUM]
 
     static final String OPT_TOKEN = "token"
+    static final String OPT_SUPPRESS_WARNINGS = "suppress-warnings"
 
     static final String ID = "id"
     static final String TITLE = "title"
@@ -27,13 +28,14 @@ class GooglePhotoApplication {
 
     def usage() {
 
-        System.err.println("""Usage: ${GooglePhotoApplication.name} [option] -Dtoken=<access token>
+        System.err.println("""Usage: ${GooglePhotoApplication.name} [options] -${OPT_TOKEN}=<access token> [-D${OPT_SUPPRESS_WARNINGS}]
             ${OPT_ALBUMS}           list all albums, sorted by name
             ${OPT_ALBUM_ITEMS}      list all items per album (use with care for large number of media items)
             ${OPT_ITEMS}            list all items (use with care for large number of media items)
             ${OPT_ITEMS_NO_ALBUM}   list all items not included in any album
-            <access token>          OAuth 2 Access Token can be obtained from https://developers.google.com/oauthplayground
-                                    use 'https://www.googleapis.com/auth/photoslibrary.readonly' as the requested scope
+            <access token>     OAuth 2 Access Token can be obtained from https://developers.google.com/oauthplayground
+                               use 'https://www.googleapis.com/auth/photoslibrary.readonly' as the requested scope
+            ${OPT_SUPPRESS_WARNINGS}  suppress all warnings, including album media count / items mismatch 
         """
         )
         System.exit(1)
@@ -64,13 +66,16 @@ class GooglePhotoApplication {
 
     def "process"(List args, String token) {
 
+        boolean suppressWarnings = suppressWarnings()
+
         List albums
 
         if (args.contains(OPT_ALBUMS) || args.contains(OPT_ALBUM_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM)) {
             albums = processAlbums(
                     token,
                     args.contains(OPT_ALBUM_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM),
-                    args.contains(OPT_ALBUM_ITEMS)
+                    args.contains(OPT_ALBUM_ITEMS),
+                    suppressWarnings
             )
         }
 
@@ -99,7 +104,7 @@ class GooglePhotoApplication {
                 Map foundItem = itemsMap[item[ID]]
                 if (foundItem) {
                     itemsMap[item[ID]].albums << album
-                } else {
+                } else if (!suppressWarnings) {
                     logAlbumItemNotFound(item, album)
                 }
             }
@@ -115,7 +120,7 @@ class GooglePhotoApplication {
         }
     }
 
-    List processAlbums(String token, boolean retrieveAlbumItems, boolean logAlbumItems) {
+    List processAlbums(String token, boolean retrieveAlbumItems, boolean logAlbumItems, boolean suppressWarnings) {
 
         List albums = service.getAllAlbums(token)
         int totalItems = albums.inject(0) { count, album ->
@@ -132,7 +137,9 @@ class GooglePhotoApplication {
                 List items = service.getItemsForAlbum(album[ID], token)
                 logAlbumItemsReceived(items)
                 if (items.size() != Integer.valueOf(album[MEDIA_ITEMS_COUNT] ? Integer.valueOf(album[MEDIA_ITEMS_COUNT]) : 0)) {
-                    logAlbumItemsCountMismatch()
+                    if (!suppressWarnings) {
+                        logAlbumItemsCountMismatch()
+                    }
                 }
 
                 album[MEDIA_ITEMS] = items
@@ -151,6 +158,11 @@ class GooglePhotoApplication {
     String getToken() {
 
         return System.getProperty(OPT_TOKEN)
+    }
+
+    boolean suppressWarnings() {
+
+        return System.getProperty(OPT_SUPPRESS_WARNINGS) != null
     }
 
     def logItemsWithoutAlbums(Map itemsWithoutAlbums) {
