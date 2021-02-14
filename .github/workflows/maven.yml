@@ -23,11 +23,11 @@ jobs:
         java-version: 1.8
 
     - name: check release tag
-#      if: github.event_name == 'pull_request'
       run: scripts/check-release.sh
 
-#    - name: Build with Maven
-#      run: mvn -B package --file pom.xml
+    - name: Build with Maven
+      if: github.event_name == 'pull_request'
+      run: mvn -B package
 
     - name: deploy maven artifact
       if: github.event_name == 'push'
@@ -44,6 +44,7 @@ jobs:
 
     - name: create release
       id: create_release
+      if: github.event_name == 'push'
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
@@ -55,6 +56,7 @@ jobs:
 
     - name: upload release asset
       id: upload-release-asset
+      if: github.event_name == 'push'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
