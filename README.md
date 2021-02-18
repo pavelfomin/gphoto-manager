@@ -36,4 +36,7 @@ java -jar gphoto-manager-<version>.jar --items-no-album -Dtoken=<access token>
  - `open target/spock-reports/index.html`
 
 ## Issues with shared media items
-For a shared album owned by account A, if a media item is added from another account B then its id won't be found in the list of the media items of the account A. If such a shared media item is saved in account A its id won't match the id of the original shared media item added to the shared album. W/out an indicator of some sort to identify if a media item belongs to another account it's challenging to filter them out.
+For a shared album owned by account A, if a media item is added from another account B then its id won't be found in the list of the media items of the account A. 
+If such a shared media item is saved in account A its id won't match the id of the original shared media item added to the shared album. 
+W/out an indicator of some sort to identify if a media item belongs to another account it's challenging to filter them out.
+
