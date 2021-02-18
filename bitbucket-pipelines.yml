@@ -12,6 +12,7 @@ pipelines:
           caches:
             - maven
           script:
+            - scripts/check-release.sh
             - mvn -B package
             - scripts/tag-release.sh
             - scripts/publish.sh
