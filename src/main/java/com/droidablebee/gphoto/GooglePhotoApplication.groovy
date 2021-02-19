@@ -10,6 +10,7 @@ class GooglePhotoApplication {
 
     static final String OPT_TOKEN = "token"
     static final String OPT_SUPPRESS_WARNINGS = "suppress-warnings"
+    static final String OPT_IGNORE_MEDIA_ITEMS_FILE = "ignore-media-items-file"
 
     static final String ID = "id"
     static final String TITLE = "title"
@@ -17,6 +18,8 @@ class GooglePhotoApplication {
     static final String PRODUCT_URL = "productUrl"
     static final String MEDIA_ITEMS_COUNT = "mediaItemsCount"
     static final String MEDIA_ITEMS = GooglePhotoService.MEDIA_ITEMS
+
+    static final String LINE_SEPARATOR = System.getProperty("line.separator")
 
     GooglePhotoService service = new GooglePhotoService()
 
@@ -28,7 +31,7 @@ class GooglePhotoApplication {
 
     def usage() {
 
-        System.err.println("""Usage: ${GooglePhotoApplication.name} [options] -${OPT_TOKEN}=<access token> [-D${OPT_SUPPRESS_WARNINGS}]
+        System.err.println("""Usage: ${GooglePhotoApplication.name} [options] -${OPT_TOKEN}=<access token> [-D${OPT_SUPPRESS_WARNINGS}] [-D${OPT_IGNORE_MEDIA_ITEMS_FILE}=<file with media items to ignore>]
             ${OPT_ALBUMS}           list all albums, sorted by name
             ${OPT_ALBUM_ITEMS}      list all items per album (use with care for large number of media items)
             ${OPT_ITEMS}            list all items (use with care for large number of media items)
@@ -110,8 +113,10 @@ class GooglePhotoApplication {
             }
         }
 
+        Map ignoreMediaItemsMap = getIgnoreMediaItemsMap()
+
         Map itemsWithoutAlbums = itemsMap.findAll { String key, Map item ->
-            !item.albums
+            !item.albums && !ignoreMediaItemsMap[item[PRODUCT_URL]]
         }
 
         logItemsWithoutAlbumsSummary(itemsWithoutAlbums)
@@ -213,4 +218,54 @@ class GooglePhotoApplication {
         println("Album: ${album[TITLE]}, items: ${album[MEDIA_ITEMS_COUNT]} url: ${album[PRODUCT_URL]}")
     }
 
+    String getIgnoreMediaItemsFile() {
+
+        return System.getProperty(OPT_IGNORE_MEDIA_ITEMS_FILE)
+    }
+
+    Map getIgnoreMediaItemsMap() {
+
+        String ignoreMediaItemsFile = getIgnoreMediaItemsFile()
+        return ignoreMediaItemsFile ? getIgnoreMediaItemsMap(ignoreMediaItemsFile) : [:]
+    }
+
+    Map getIgnoreMediaItemsMap(String ignoreMediaItemsFile) {
+
+        Map ignoreMediaItemsMap = [:]
+
+        String content = getFileContent(ignoreMediaItemsFile)
+        content?.split(LINE_SEPARATOR).each { String line ->
+            if (!line.startsWith("#")) {
+                ignoreMediaItemsMap.put(line.trim(), line)
+            }
+        }
+
+        System.err.println("Ignoring ${ignoreMediaItemsMap.size()} media items from file: ${ignoreMediaItemsFile}")
+
+        return ignoreMediaItemsMap
+    }
+
+    String getFileContent(String fileName) {
+
+        String content
+        File file = getFile(fileName)
+
+        if (file.exists()) {
+            content = getFileContent(file)
+        } else {
+            System.err.println("Media items ignore file '${fileName}' does not exist")
+        }
+
+        return content
+    }
+
+    String getFileContent(File file) {
+
+        return file.getText()
+    }
+
+    File getFile(String fileName) {
+
+        return new File(fileName)
+    }
 }

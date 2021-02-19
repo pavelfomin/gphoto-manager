@@ -112,4 +112,64 @@ class GooglePhotoApplicationSpec extends Specification {
         true               | false         | [[(ID): "id1", (MEDIA_ITEMS_COUNT): 1]] | 1             | []              | 0                     | 0                  | true
     }
 
+    @Unroll
+    def "get ignore media items map"() {
+
+        when:
+        Map map = application.getIgnoreMediaItemsMap()
+
+        then:
+        map == expected
+
+        1 * application.getIgnoreMediaItemsFile() >> fileName
+        call * application.getIgnoreMediaItemsMap(fileName) >> expected
+
+        where:
+        fileName    | call | expected
+        null        | 0    | [:]
+        "specified" | 1    | [:]
+        "specified" | 1    | ["line1": "line1"]
+    }
+
+    @Unroll
+    def "get ignore media items map with from file"() {
+
+        when:
+        Map map = application.getIgnoreMediaItemsMap(fileName)
+
+        then:
+        map.keySet().containsAll(ignoreMediaItemsMap.keySet())
+
+        1 * application.getFileContent(fileName) >> content
+
+        where:
+        fileName          | content           | ignoreMediaItemsMap
+        "invalid"         | null              | [:]
+        "valid empty"     | ""                | [:]
+        "valid not empty" | "line1"           | ["line1": "line1"]
+        "valid not empty" | " line1 \nline2"  | ["line1": "line1", "line2": "line2"]
+        "valid not empty" | "# line1 \nline2" | ["line2": "line2"]
+    }
+
+    @Unroll
+    def "get file content"() {
+
+        File file = Mock(constructorArgs: [fileName])
+
+        when:
+        String content = application.getFileContent(fileName)
+
+        then:
+        content == expected
+
+        1 * application.getFile(fileName) >> file
+        1 * file.exists() >> fileExists
+        fileContentCall * application.getFileContent(file) >> expected
+
+        where:
+        fileName          | fileExists | expected       | fileContentCall
+        "invalid"         | false      | null           | 0
+        "valid empty"     | true       | ""             | 1
+        "valid not empty" | true       | "some content" | 1
+    }
 }
