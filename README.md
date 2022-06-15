@@ -21,14 +21,14 @@ java -jar gphoto-manager-<version>.jar
 ```
 Examples:
 ```
-java -jar gphoto-manager-<version>.jar --albums -Dtoken=<access token>
-java -jar gphoto-manager-<version>.jar --items-no-album -Dtoken=<access token>
+java -Dtoken=<access token> -jar gphoto-manager-<version>.jar --albums 
+java -Dtoken=<access token> -jar gphoto-manager-<version>.jar --items-no-album
 ```
 
 ### Maven wrapper (for developers)
 ```
-./mvnw clean compile exec:java -Dexec.mainClass="com.droidablebee.gphoto.GooglePhotoService"
-./mvnw clean compile exec:java -Dexec.mainClass="com.droidablebee.gphoto.GooglePhotoService" -Dexec.args="--items-no-album" -Dtoken=<access token>
+./mvnw clean compile exec:java -Dexec.mainClass="com.droidablebee.gphoto.GooglePhotoApplication"
+./mvnw clean compile exec:java -Dexec.mainClass="com.droidablebee.gphoto.GooglePhotoApplication" -Dexec.args="--items-no-album" -Dtoken=<access token>
 ```
 
 ### Running tests
