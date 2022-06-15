@@ -31,14 +31,16 @@ class GooglePhotoApplication {
 
     def usage() {
 
-        System.err.println("""Usage: ${GooglePhotoApplication.name} [options] -${OPT_TOKEN}=<access token> [-D${OPT_SUPPRESS_WARNINGS}] [-D${OPT_IGNORE_MEDIA_ITEMS_FILE}=<file with media items to ignore>]
+        System.err.println("""Usage: java -D${OPT_TOKEN}=<access token> [-D${OPT_SUPPRESS_WARNINGS}] [-D${OPT_IGNORE_MEDIA_ITEMS_FILE}=<file with media items to ignore>] -jar gphoto-manager-<version>.jar [options]
             ${OPT_ALBUMS}           list all albums, sorted by name
             ${OPT_ALBUM_ITEMS}      list all items per album (use with care for large number of media items)
             ${OPT_ITEMS}            list all items (use with care for large number of media items)
             ${OPT_ITEMS_NO_ALBUM}   list all items not included in any album
-            <access token>     OAuth 2 Access Token can be obtained from https://developers.google.com/oauthplayground
-                               use 'https://www.googleapis.com/auth/photoslibrary.readonly' as the requested scope
-            ${OPT_SUPPRESS_WARNINGS}  suppress all warnings, including album media count / items mismatch 
+            -D${OPT_TOKEN}=<access token> OAuth 2 Access Token
+                                    can be obtained from https://developers.google.com/oauthplayground
+                                    use 'https://www.googleapis.com/auth/photoslibrary.readonly' as the requested scope
+            -D${OPT_SUPPRESS_WARNINGS} suppress all warnings, including album media count / items mismatch
+            -D${OPT_IGNORE_MEDIA_ITEMS_FILE}=<file with media items to ignore> file with media item urls to ignore
         """
         )
         System.exit(1)
