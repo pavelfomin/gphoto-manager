@@ -1,7 +1,6 @@
 package com.droidablebee.gphoto
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static com.droidablebee.gphoto.GooglePhotoApplication.ID
 import static com.droidablebee.gphoto.GooglePhotoApplication.MEDIA_ITEMS
@@ -17,7 +16,7 @@ class GooglePhotoApplicationSpec extends Specification {
     GooglePhotoService service = Mock()
     GooglePhotoApplication application = Spy(new GooglePhotoApplication(service: service))
 
-    @Unroll
+    
     def "process options"() {
 
         when:
@@ -37,7 +36,7 @@ class GooglePhotoApplicationSpec extends Specification {
         VALID_OPTIONS | "token" | 0         | 1         | 1
     }
 
-    @Unroll
+    
     def "process with valid args and token specified"() {
 
         String token = "token"
@@ -70,7 +69,7 @@ class GooglePhotoApplicationSpec extends Specification {
         [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1", (MEDIA_ITEMS): [[(ID): "shared"]]]]                 | true               | false         | 1         | [[(ID): "mine"]] | 1                    | 0             | 0                    | 1                            | 1                     | true
     }
 
-    @Unroll
+    
     def "process albums"() {
 
         String token
@@ -112,7 +111,7 @@ class GooglePhotoApplicationSpec extends Specification {
         true               | false         | [[(ID): "id1", (MEDIA_ITEMS_COUNT): 1]] | 1             | []              | 0                     | 0                  | true
     }
 
-    @Unroll
+    
     def "get ignore media items map"() {
 
         when:
@@ -131,7 +130,7 @@ class GooglePhotoApplicationSpec extends Specification {
         "specified" | 1    | ["line1": "line1"]
     }
 
-    @Unroll
+
     def "get ignore media items map with from file"() {
 
         when:
@@ -151,7 +150,7 @@ class GooglePhotoApplicationSpec extends Specification {
         "valid not empty" | "# line1 \nline2" | ["line2": "line2"]
     }
 
-    @Unroll
+    
     def "get file content"() {
 
         File file = Mock(constructorArgs: [fileName])

@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+    id 'groovy'
+    id 'jacoco'
+    id 'maven-publish'
+}
+
+sourceCompatibility = '17'
+
+ext {
+    groovyVersion = "4.0.22"
+    spockBomVersion = "2.4-M1-groovy-4.0"
+}
+
+dependencies {
+    implementation "org.apache.groovy:groovy:${groovyVersion}"
+    implementation "org.apache.groovy:groovy-json"
+
+    // Test
+    testImplementation platform("org.spockframework:spock-bom:${spockBomVersion}")
+    testImplementation "org.spockframework:spock-core"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+    afterSuite { desc, result ->
+        if (!desc.parent)
+            println("${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)")
+    }
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.required = true
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/pavelfomin/gphoto-manager"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
