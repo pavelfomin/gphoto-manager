@@ -1,5 +1,4 @@
 plugins {
-    id 'java'
     id 'groovy'
     id 'jacoco'
     id 'maven-publish'
@@ -9,16 +8,23 @@ sourceCompatibility = '17'
 
 ext {
     groovyVersion = "4.0.22"
-    spockBomVersion = "2.4-M1-groovy-4.0"
+    spockBomVersion = "2.4-M4-groovy-4.0"
+    bytebuddyVersion = "1.14.17"
+    objenesisVersion = "3.4"
 }
 
 dependencies {
-    implementation "org.apache.groovy:groovy:${groovyVersion}"
+    implementation platform("org.apache.groovy:groovy-bom:${groovyVersion}")
+    implementation 'org.apache.groovy:groovy'
     implementation "org.apache.groovy:groovy-json"
 
     // Test
     testImplementation platform("org.spockframework:spock-bom:${spockBomVersion}")
     testImplementation "org.spockframework:spock-core"
+    // allows mocking of classes (in addition to interfaces)
+    testRuntimeOnly "net.bytebuddy:byte-buddy:${bytebuddyVersion}"
+    // allows mocking of classes without default constructor (together with ByteBuddy or CGLIB)
+    testRuntimeOnly "org.objenesis:objenesis:${objenesisVersion}"
 }
 
 repositories {
@@ -26,7 +32,7 @@ repositories {
     mavenCentral()
 }
 
-tasks.named('test') {
+test {
     useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed"

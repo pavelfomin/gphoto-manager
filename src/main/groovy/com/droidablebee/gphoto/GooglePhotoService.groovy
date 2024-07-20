@@ -67,12 +67,11 @@ class GooglePhotoService {
                     .build()
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString())
+            Map content = new JsonSlurper().parseText(response.body())
 
             if (response.statusCode() != 200) {
-                throw new RuntimeException("Failed to execute HTTP GET: ${response.statusCode()}")
+                throw new HttpException(content[ERROR])
             }
-
-            Map content = new JsonSlurper().parseText(response.body())
 
             List list = content[ALBUMS] ?: []
             println(" received: ${list.size()}")
@@ -108,12 +107,11 @@ class GooglePhotoService {
                     .build()
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString())
+            Map content = new JsonSlurper().parseText(response.body())
 
             if (response.statusCode() != 200) {
-                throw new RuntimeException("Failed to execute HTTP POST: ${response.statusCode()}")
+                throw new HttpException(content[ERROR])
             }
-
-            Map content = new JsonSlurper().parseText(response.body())
 
             List list = content[MEDIA_ITEMS] ?: []
             println(" received: ${list.size()}")
@@ -139,19 +137,20 @@ class GooglePhotoService {
         while (true) {
             print("Processing media items page: ${++page} ...")
 
+            URI uri = URI.create(getDefaultUri() + "${MEDIA_ITEMS}?${PAGE_SIZE}=${ITEMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${nextPageToken}")
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(getDefaultUri() + "${MEDIA_ITEMS}?${PAGE_SIZE}=${ITEMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${nextPageToken}"))
+                    .uri(uri)
                     .GET()
                     .header(AUTHORIZATION, "${BEARER} $token")
                     .build()
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString())
+            Map content = new JsonSlurper().parseText(response.body())
 
             if (response.statusCode() != 200) {
-                throw new RuntimeException("Failed to execute HTTP POST: ${response.statusCode()}")
+                throw new HttpException(content[ERROR])
             }
 
-            Map content = new JsonSlurper().parseText(response.body())
             List list = content[MEDIA_ITEMS] ?: []
             println(" received: ${list.size()}")
             items.addAll(list)
