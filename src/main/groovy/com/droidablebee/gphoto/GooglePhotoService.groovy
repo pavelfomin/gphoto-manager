@@ -52,10 +52,10 @@ class GooglePhotoService {
 
             URI uri = URI.create(getBaseUri() + "${ALBUMS}?${PAGE_SIZE}=${ALBUMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${nextPageToken}")
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .GET()
-                    .header(AUTHORIZATION, "${BEARER} $token")
-                    .build()
+                .uri(uri)
+                .GET()
+                .header(AUTHORIZATION, "${BEARER} $token")
+                .build()
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString())
             Map content = new JsonSlurper().parseText(response.body())
@@ -91,11 +91,11 @@ class GooglePhotoService {
             String json = createItemsSearchPayload(albumId, nextPageToken)
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(getBaseUri() + MEDIA_ITEMS_SEARCH))
-                    .POST(HttpRequest.BodyPublishers.ofString(json))
-                    .header(AUTHORIZATION, "${BEARER} $token")
-                    .header(CONTENT_TYPE, CONTENT_TYPE_JSON)
-                    .build()
+                .uri(URI.create(getBaseUri() + MEDIA_ITEMS_SEARCH))
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .header(AUTHORIZATION, "${BEARER} $token")
+                .header(CONTENT_TYPE, CONTENT_TYPE_JSON)
+                .build()
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString())
             Map content = new JsonSlurper().parseText(response.body())
@@ -120,9 +120,9 @@ class GooglePhotoService {
     protected String createItemsSearchPayload(String albumId, String nextPageToken) {
 
         return JsonOutput.toJson([
-                (ALBUM_ID)  : albumId,
-                (PAGE_SIZE) : ITEMS_MAX_PAGE_SIZE,
-                (PAGE_TOKEN): nextPageToken
+            (ALBUM_ID)  : albumId,
+            (PAGE_SIZE) : ITEMS_MAX_PAGE_SIZE,
+            (PAGE_TOKEN): nextPageToken
         ])
     }
 
@@ -139,10 +139,10 @@ class GooglePhotoService {
 
             URI uri = URI.create(getBaseUri() + "${MEDIA_ITEMS}?${PAGE_SIZE}=${ITEMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${nextPageToken}")
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .GET()
-                    .header(AUTHORIZATION, "${BEARER} $token")
-                    .build()
+                .uri(uri)
+                .GET()
+                .header(AUTHORIZATION, "${BEARER} $token")
+                .build()
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString())
             Map content = new JsonSlurper().parseText(response.body())

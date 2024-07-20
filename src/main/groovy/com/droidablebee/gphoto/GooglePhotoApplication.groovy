@@ -77,10 +77,10 @@ class GooglePhotoApplication {
 
         if (args.contains(OPT_ALBUMS) || args.contains(OPT_ALBUM_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM)) {
             albums = processAlbums(
-                    token,
-                    args.contains(OPT_ALBUM_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM),
-                    args.contains(OPT_ALBUM_ITEMS),
-                    suppressWarnings
+                token,
+                args.contains(OPT_ALBUM_ITEMS) || args.contains(OPT_ITEMS_NO_ALBUM),
+                args.contains(OPT_ALBUM_ITEMS),
+                suppressWarnings
             )
         }
 

@@ -16,7 +16,6 @@ class GooglePhotoApplicationSpec extends Specification {
     GooglePhotoService service = Mock()
     GooglePhotoApplication application = Spy(new GooglePhotoApplication(service: service))
 
-    
     def "process options"() {
 
         when:
@@ -36,7 +35,6 @@ class GooglePhotoApplicationSpec extends Specification {
         VALID_OPTIONS | "token" | 0         | 1         | 1
     }
 
-    
     def "process with valid args and token specified"() {
 
         String token = "token"
@@ -69,7 +67,6 @@ class GooglePhotoApplicationSpec extends Specification {
         [OPT_ITEMS_NO_ALBUM]                             | 1          | [[(ID): "id1", (MEDIA_ITEMS): [[(ID): "shared"]]]]                 | true               | false         | 1         | [[(ID): "mine"]] | 1                    | 0             | 0                    | 1                            | 1                     | true
     }
 
-    
     def "process albums"() {
 
         String token
@@ -111,7 +108,6 @@ class GooglePhotoApplicationSpec extends Specification {
         true               | false         | [[(ID): "id1", (MEDIA_ITEMS_COUNT): 1]] | 1             | []              | 0                     | 0                  | true
     }
 
-    
     def "get ignore media items map"() {
 
         when:
@@ -150,7 +146,6 @@ class GooglePhotoApplicationSpec extends Specification {
         "valid not empty" | "# line1 \nline2" | ["line2": "line2"]
     }
 
-    
     def "get file content"() {
 
         File file = Mock(constructorArgs: [fileName])

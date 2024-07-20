@@ -7,19 +7,19 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
+import static com.droidablebee.gphoto.GooglePhotoService.ALBUMS
+import static com.droidablebee.gphoto.GooglePhotoService.ALBUMS_MAX_PAGE_SIZE
 import static com.droidablebee.gphoto.GooglePhotoService.AUTHORIZATION
 import static com.droidablebee.gphoto.GooglePhotoService.BEARER
+import static com.droidablebee.gphoto.GooglePhotoService.CONTENT_TYPE
 import static com.droidablebee.gphoto.GooglePhotoService.CONTENT_TYPE_JSON
 import static com.droidablebee.gphoto.GooglePhotoService.ERROR
+import static com.droidablebee.gphoto.GooglePhotoService.ITEMS_MAX_PAGE_SIZE
 import static com.droidablebee.gphoto.GooglePhotoService.MEDIA_ITEMS
 import static com.droidablebee.gphoto.GooglePhotoService.MEDIA_ITEMS_SEARCH
 import static com.droidablebee.gphoto.GooglePhotoService.NEXT_PAGE_TOKEN
 import static com.droidablebee.gphoto.GooglePhotoService.PAGE_SIZE
 import static com.droidablebee.gphoto.GooglePhotoService.PAGE_TOKEN
-import static com.droidablebee.gphoto.GooglePhotoService.ALBUMS
-import static com.droidablebee.gphoto.GooglePhotoService.ALBUMS_MAX_PAGE_SIZE
-import static com.droidablebee.gphoto.GooglePhotoService.CONTENT_TYPE
-import static com.droidablebee.gphoto.GooglePhotoService.ITEMS_MAX_PAGE_SIZE
 
 class GooglePhotoServiceSpec extends Specification {
 
@@ -40,12 +40,12 @@ class GooglePhotoServiceSpec extends Specification {
         then:
         call1 * httpClient.send({ HttpRequest request ->
             request.uri().toString() == service.getBaseUri() + "${ALBUMS}?${PAGE_SIZE}=${ALBUMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=" &&
-                    request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}"
+                request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}"
         }, HttpResponse.BodyHandlers.ofString()) >> response1
 
         call2 * httpClient.send({ HttpRequest request ->
             request.uri().toString() == service.getBaseUri() + "${ALBUMS}?${PAGE_SIZE}=${ALBUMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${data1[NEXT_PAGE_TOKEN]}" &&
-                    request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}"
+                request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}"
         }, HttpResponse.BodyHandlers.ofString()) >> response2
 
         call1 * response1.body() >> { JsonOutput.toJson(data1) }
@@ -98,20 +98,20 @@ class GooglePhotoServiceSpec extends Specification {
         call1 * serviceSpy.createItemsSearchPayload(albumId, "") >> searchPayload1
         call1 * httpClient.send({ HttpRequest request ->
             request.uri().toString() == service.getBaseUri() + MEDIA_ITEMS_SEARCH &&
-                    request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}" &&
-                    request.headers().firstValue(CONTENT_TYPE).get() == CONTENT_TYPE_JSON &&
-                    request.method() == "POST" &&
-                    request.bodyPublisher().get().contentLength() == searchPayload1.length()
+                request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}" &&
+                request.headers().firstValue(CONTENT_TYPE).get() == CONTENT_TYPE_JSON &&
+                request.method() == "POST" &&
+                request.bodyPublisher().get().contentLength() == searchPayload1.length()
             // todo: assert json body somehow (instead of using content length): ${ALBUM_ID}=${albumId}&${PAGE_SIZE}=${ITEMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=
         }, HttpResponse.BodyHandlers.ofString()) >> response1
 
         call2 * serviceSpy.createItemsSearchPayload(albumId, data1[NEXT_PAGE_TOKEN]) >> searchPayload2
         call2 * httpClient.send({ HttpRequest request ->
             request.uri().toString() == service.getBaseUri() + MEDIA_ITEMS_SEARCH &&
-                    request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}" &&
-                    request.headers().firstValue(CONTENT_TYPE).get() == CONTENT_TYPE_JSON &&
-                    request.method() == "POST" &&
-                    request.bodyPublisher().get().contentLength() == searchPayload2.length()
+                request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}" &&
+                request.headers().firstValue(CONTENT_TYPE).get() == CONTENT_TYPE_JSON &&
+                request.method() == "POST" &&
+                request.bodyPublisher().get().contentLength() == searchPayload2.length()
             // todo: assert json body somehow (instead of using content length): ${ALBUM_ID}=${albumId}&${PAGE_SIZE}=${ITEMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${data1[NEXT_PAGE_TOKEN]}
         }, HttpResponse.BodyHandlers.ofString()) >> response2
 
@@ -162,12 +162,12 @@ class GooglePhotoServiceSpec extends Specification {
         then:
         call1 * httpClient.send({ HttpRequest request ->
             request.uri().toString() == service.getBaseUri() + "${MEDIA_ITEMS}?${PAGE_SIZE}=${ITEMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=" &&
-                    request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}"
+                request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}"
         }, HttpResponse.BodyHandlers.ofString()) >> response1
 
         call2 * httpClient.send({ HttpRequest request ->
             request.uri().toString() == service.getBaseUri() + "${MEDIA_ITEMS}?${PAGE_SIZE}=${ITEMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${data1[NEXT_PAGE_TOKEN]}" &&
-                    request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}"
+                request.headers().firstValue(AUTHORIZATION).get() == "${BEARER} ${token}"
         }, HttpResponse.BodyHandlers.ofString()) >> response2
 
         call1 * response1.body() >> { JsonOutput.toJson(data1) }
