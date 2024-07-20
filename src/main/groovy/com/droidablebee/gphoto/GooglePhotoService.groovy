@@ -19,28 +19,19 @@ class GooglePhotoService {
     static final String ERROR = "error"
     static final String NEXT_PAGE_TOKEN = "nextPageToken"
 
-    static final String HEADERS = "headers"
-    static final String PATH = "path"
     static final String AUTHORIZATION = "Authorization"
-    static final String CONTENT_TYPE_JSON = "Content-Type"
+    static final String CONTENT_TYPE = "Content-Type"
     static final String BEARER = "Bearer"
 
-    static final String BODY = "body"
-
-    static final String QUERY = "query"
     static final String PAGE_SIZE = "pageSize"
     static final String PAGE_TOKEN = "pageToken"
     static final String ALBUM_ID = "albumId"
+    public static final String CONTENT_TYPE_JSON = "application/json"
 
     protected HttpClient httpClient = HttpClient.newBuilder().build()
 
-
     protected String getDefaultUri() {
         return 'https://photoslibrary.googleapis.com/v1/'
-    }
-
-    protected String getApiClient() {
-        return "gphoto-manager"
     }
 
     protected HttpClient getHttpClient() {
@@ -97,13 +88,13 @@ class GooglePhotoService {
         while (true) {
             print("Processing album items page: ${++page} ...")
 
-            String json = JsonOutput.toJson([(ALBUM_ID): albumId, (PAGE_SIZE): ITEMS_MAX_PAGE_SIZE, (PAGE_TOKEN): nextPageToken])
+            String json = createItemsSearchPayload(albumId, nextPageToken)
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(getDefaultUri() + MEDIA_ITEMS_SEARCH))
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .header(AUTHORIZATION, "${BEARER} $token")
-                    .header(CONTENT_TYPE_JSON, "application/json")
+                    .header(CONTENT_TYPE, CONTENT_TYPE_JSON)
                     .build()
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString())
@@ -124,6 +115,15 @@ class GooglePhotoService {
         }
 
         return items
+    }
+
+    protected String createItemsSearchPayload(String albumId, String nextPageToken) {
+
+        return JsonOutput.toJson([
+                (ALBUM_ID)  : albumId,
+                (PAGE_SIZE) : ITEMS_MAX_PAGE_SIZE,
+                (PAGE_TOKEN): nextPageToken
+        ])
     }
 
     def getAllItems(String token) {
