@@ -20,17 +20,17 @@ class GooglePhotoService {
     static final String NEXT_PAGE_TOKEN = "nextPageToken"
 
     static final String AUTHORIZATION = "Authorization"
-    static final String CONTENT_TYPE = "Content-Type"
     static final String BEARER = "Bearer"
+    static final String CONTENT_TYPE = "Content-Type"
+    static final String CONTENT_TYPE_JSON = "application/json"
 
     static final String PAGE_SIZE = "pageSize"
     static final String PAGE_TOKEN = "pageToken"
     static final String ALBUM_ID = "albumId"
-    public static final String CONTENT_TYPE_JSON = "application/json"
 
     protected HttpClient httpClient = HttpClient.newBuilder().build()
 
-    protected String getDefaultUri() {
+    protected String getBaseUri() {
         return 'https://photoslibrary.googleapis.com/v1/'
     }
 
@@ -50,7 +50,7 @@ class GooglePhotoService {
         while (true) {
             print("Processing albums page: ${++page} ...")
 
-            URI uri = URI.create(getDefaultUri() + "${ALBUMS}?${PAGE_SIZE}=${ALBUMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${nextPageToken}")
+            URI uri = URI.create(getBaseUri() + "${ALBUMS}?${PAGE_SIZE}=${ALBUMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${nextPageToken}")
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
                     .GET()
@@ -91,7 +91,7 @@ class GooglePhotoService {
             String json = createItemsSearchPayload(albumId, nextPageToken)
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(getDefaultUri() + MEDIA_ITEMS_SEARCH))
+                    .uri(URI.create(getBaseUri() + MEDIA_ITEMS_SEARCH))
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .header(AUTHORIZATION, "${BEARER} $token")
                     .header(CONTENT_TYPE, CONTENT_TYPE_JSON)
@@ -137,7 +137,7 @@ class GooglePhotoService {
         while (true) {
             print("Processing media items page: ${++page} ...")
 
-            URI uri = URI.create(getDefaultUri() + "${MEDIA_ITEMS}?${PAGE_SIZE}=${ITEMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${nextPageToken}")
+            URI uri = URI.create(getBaseUri() + "${MEDIA_ITEMS}?${PAGE_SIZE}=${ITEMS_MAX_PAGE_SIZE}&${PAGE_TOKEN}=${nextPageToken}")
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
                     .GET()
