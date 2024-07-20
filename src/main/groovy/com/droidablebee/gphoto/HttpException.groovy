@@ -8,6 +8,6 @@ class HttpException extends Exception {
 
     @Override
     String toString() {
-        return [code: code, message: message, status:status].toString()
+        return [code: code, message: message, status: status].toString()
     }
 }

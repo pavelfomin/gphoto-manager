@@ -1,0 +1,67 @@
+plugins {
+    id 'groovy'
+    id 'jacoco'
+    id 'nebula.release' version "17.1.0"
+    id 'nebula.maven-publish' version "18.4.0"
+    id 'maven-publish'
+}
+
+sourceCompatibility = '17'
+
+ext {
+    groovyVersion = "4.0.22"
+    spockBomVersion = "2.4-M4-groovy-4.0"
+    bytebuddyVersion = "1.14.17"
+    objenesisVersion = "3.4"
+}
+
+dependencies {
+    implementation platform("org.apache.groovy:groovy-bom:${groovyVersion}")
+    implementation 'org.apache.groovy:groovy'
+    implementation "org.apache.groovy:groovy-json"
+
+    // Test
+    testImplementation platform("org.spockframework:spock-bom:${spockBomVersion}")
+    testImplementation "org.spockframework:spock-core"
+    // allows mocking of classes (in addition to interfaces)
+    testRuntimeOnly "net.bytebuddy:byte-buddy:${bytebuddyVersion}"
+    // allows mocking of classes without default constructor (together with ByteBuddy or CGLIB)
+    testRuntimeOnly "org.objenesis:objenesis:${objenesisVersion}"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+    afterSuite { desc, result ->
+        if (!desc.parent)
+            println("${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)")
+    }
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.required = true
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/pavelfomin/gphoto-manager"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
