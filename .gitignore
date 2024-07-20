@@ -4,3 +4,7 @@ target/
 
 .gradle/
 build/
+
+# generated during GH build
+settings.xml
+toolchains.xml
