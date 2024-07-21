@@ -67,7 +67,7 @@ jobs:
 
       - name: Build, publish and tag release
         if: github.event_name == 'push'
-        run: ./gradlew build publish final -Prelease.stage=final
+        run: ./gradlew build shadowJar publish final -Prelease.stage=final
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

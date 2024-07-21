@@ -1,6 +1,7 @@
 plugins {
     id 'groovy'
     id 'jacoco'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'nebula.release' version "17.1.0"
     id 'nebula.maven-publish' version "18.4.0"
     id 'maven-publish'
@@ -32,6 +33,15 @@ dependencies {
 repositories {
     mavenLocal()
     mavenCentral()
+}
+
+tasks.jar {
+    manifest.attributes["Main-Class"] = 'com.droidablebee.gphoto.GooglePhotoApplication'
+}
+
+shadowJar {
+    // use the same jar name to override the standard jar with shadow jar
+    archiveFileName = "${archiveBaseName.get()}-${archiveVersion.get()}.${archiveExtension.get()}"
 }
 
 test {
