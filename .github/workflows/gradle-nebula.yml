@@ -83,3 +83,22 @@ jobs:
       - name: deploy new release
         if: github.event_name == 'push'
         run: scripts/deploy-latest.sh
+
+      - name: get latest tag
+        id: get_latest_tag
+        if: github.event_name == 'push'
+        run: |
+          tag=$(git describe --abbrev=0 --tags)
+          echo "latest tag: $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: create release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.get_latest_tag.outputs.tag }}
+          tag_name: ${{ steps.get_latest_tag.outputs.tag }}
+          draft: false
+          prerelease: true
+          files: |
+            build/libs/*jar
