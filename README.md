@@ -14,11 +14,11 @@ Access token is passed to the GooglePhotoService using -Dtoken=<access token>
 ## Download
 Download [latest version](https://github.com/pavelfomin/gphoto-manager/releases)
 
-### Java 11 runtime
-Use 0.1.x versions
-
 ### Java 17+ runtime
 Use 1.x versions
+
+### Java 11 runtime
+Use 0.x versions
 
 ## Usage
 To list the available options:
@@ -31,13 +31,18 @@ java -Dtoken=<access token> -jar gphoto-manager-<version>.jar --albums
 java -Dtoken=<access token> -jar gphoto-manager-<version>.jar --items-no-album
 ```
 
-### Maven wrapper (for developers)
+### Running using gradle or maven (for developers)
+
+#### Gradle wrapper (new versions starting from 1.x)
+TODO
+
+#### Maven wrapper (for older versions 0.x)
 ```
 ./mvnw clean compile exec:java -Dexec.mainClass="com.droidablebee.gphoto.GooglePhotoApplication"
 ./mvnw clean compile exec:java -Dexec.mainClass="com.droidablebee.gphoto.GooglePhotoApplication" -Dexec.args="--items-no-album" -Dtoken=<access token>
 ```
 
-### Running tests
+##### Running tests
  - `./mvnw clean test`
  - `open target/spock-reports/index.html`
 
